@@ -39,12 +39,14 @@ export const deleteCourse = dbDeleteCourse;
 // Learning Path operations
 export async function fetchAllLearningPaths(): Promise<LearningPath[]> {
   const db = getDb();
-  return db.collection(COLLECTIONS.LEARNING_PATHS).find().toArray() as Promise<LearningPath[]>;
+  const results = await db.collection(COLLECTIONS.LEARNING_PATHS).find().toArray();
+  return results as unknown as LearningPath[];
 }
 
 export async function fetchLearningPathById(id: string): Promise<LearningPath | null> {
   const db = getDb();
-  return db.collection(COLLECTIONS.LEARNING_PATHS).findOne({ id }) as Promise<LearningPath | null>;
+  const result = await db.collection(COLLECTIONS.LEARNING_PATHS).findOne({ id });
+  return result as unknown as LearningPath | null;
 }
 
 export async function createLearningPath(learningPath: Omit<LearningPath, "id" | "createdAt" | "updatedAt">): Promise<LearningPath> {
@@ -84,10 +86,11 @@ export async function deleteLearningPath(id: string): Promise<boolean> {
 // Course progress operations
 export async function fetchUserCourseProgress(userId: string, courseId: string): Promise<CourseProgress | null> {
   const db = getDb();
-  return db.collection(COLLECTIONS.COURSE_PROGRESS).findOne({ 
+  const result = await db.collection(COLLECTIONS.COURSE_PROGRESS).findOne({ 
     userId, 
     courseId 
-  }) as Promise<CourseProgress | null>;
+  });
+  return result as unknown as CourseProgress | null;
 }
 
 export async function updateUserCourseProgress(

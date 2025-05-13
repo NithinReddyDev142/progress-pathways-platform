@@ -8,6 +8,7 @@ import {
   Question, 
   CourseProgress 
 } from "../types";
+import { Document, WithId } from "mongodb";
 
 // Collection names
 const COLLECTIONS = {
@@ -22,7 +23,8 @@ const COLLECTIONS = {
 // User operations
 export async function findUserByEmail(email: string): Promise<User | null> {
   const db = getDb();
-  return db.collection(COLLECTIONS.USERS).findOne({ email: email.toLowerCase() }) as Promise<User | null>;
+  const result = await db.collection(COLLECTIONS.USERS).findOne({ email: email.toLowerCase() });
+  return result as unknown as User | null;
 }
 
 export async function createUser(user: Omit<User, "id">): Promise<User> {
@@ -49,12 +51,14 @@ export async function updateUser(userId: string, updates: Partial<User>): Promis
 // Course operations
 export async function getAllCourses(): Promise<Course[]> {
   const db = getDb();
-  return db.collection(COLLECTIONS.COURSES).find().toArray() as Promise<Course[]>;
+  const results = await db.collection(COLLECTIONS.COURSES).find().toArray();
+  return results as unknown as Course[];
 }
 
 export async function getCourseById(id: string): Promise<Course | null> {
   const db = getDb();
-  return db.collection(COLLECTIONS.COURSES).findOne({ id }) as Promise<Course | null>;
+  const result = await db.collection(COLLECTIONS.COURSES).findOne({ id });
+  return result as unknown as Course | null;
 }
 
 export async function createCourse(course: Omit<Course, "id" | "createdAt" | "updatedAt">): Promise<Course> {
@@ -94,12 +98,14 @@ export async function deleteCourse(id: string): Promise<boolean> {
 // Learning path operations
 export async function getAllLearningPaths(): Promise<LearningPath[]> {
   const db = getDb();
-  return db.collection(COLLECTIONS.LEARNING_PATHS).find().toArray() as Promise<LearningPath[]>;
+  const results = await db.collection(COLLECTIONS.LEARNING_PATHS).find().toArray();
+  return results as unknown as LearningPath[];
 }
 
 export async function getLearningPathById(id: string): Promise<LearningPath | null> {
   const db = getDb();
-  return db.collection(COLLECTIONS.LEARNING_PATHS).findOne({ id }) as Promise<LearningPath | null>;
+  const result = await db.collection(COLLECTIONS.LEARNING_PATHS).findOne({ id });
+  return result as unknown as LearningPath | null;
 }
 
 // More services can be added as needed for other collections
