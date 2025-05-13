@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { LmsProvider } from "@/contexts/LmsContext";
+import { LmsProvider } from "@/contexts/lms";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // Auth Pages

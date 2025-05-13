@@ -1,14 +1,15 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLms } from "@/contexts/LmsContext";
+import { useCourses, useLearningPaths, useProgress } from "@/contexts/lms";
 import { mockUsers } from "@/data/mockData";
 import { BookOpen, Users, Calendar } from "lucide-react";
 
 const AdminDashboard = () => {
-  const { courses, learningPaths, courseProgress } = useLms();
+  const { courses } = useCourses();
+  const { learningPaths } = useLearningPaths();
+  const { courseProgress } = useProgress();
   const [timeFilter, setTimeFilter] = useState("all");
   
   // Calculate statistics
