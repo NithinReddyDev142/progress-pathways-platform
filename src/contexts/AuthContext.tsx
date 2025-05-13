@@ -1,8 +1,9 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User, UserRole } from "../types";
-import { mockUsers } from "../data/mockData";
 import { toast } from "sonner";
+import { findUserByEmail, createUser, updateUser } from "../services/dbService";
+import { connectToMongo, closeMongoConnection } from "../utils/mongoClient";
 
 interface AuthContextType {
   user: User | null;
@@ -21,6 +22,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
+    // Initialize MongoDB connection
+    const initMongo = async () => {
+      try {
+        await connectToMongo();
+      } catch (error) {
+        console.error("Failed to initialize MongoDB connection:", error);
+        toast.error("Failed to connect to database. Using local storage instead.");
+      }
+    };
+
     // Check for saved user in localStorage
     const savedUser = localStorage.getItem("lms-user");
     if (savedUser) {
@@ -34,12 +45,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem("lms-user");
       }
     }
+    
+    initMongo();
+
+    // Clean up MongoDB connection on unmount
+    return () => {
+      closeMongoConnection().catch(console.error);
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // In a real app, this would make an API request
-    // For now, simulate with our mock data
-    
     // Simple validation
     if (!email || !password) {
       toast.error("Please enter both email and password");
@@ -47,15 +62,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      // For demo purposes, password is ignored, just find by email
-      const foundUser = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      // Find user in MongoDB by email
+      const foundUser = await findUserByEmail(email);
       
       if (foundUser) {
+        // In a real app, you would check the password hash here
+        
         // Update last login
         const updatedUser = {
           ...foundUser,
           lastLogin: new Date().toISOString(),
         };
+        
+        // Update in MongoDB
+        await updateUser(foundUser.id, { lastLogin: updatedUser.lastLogin });
         
         // Save to state and localStorage
         setUser(updatedUser);
@@ -90,9 +110,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string,
     role: UserRole
   ): Promise<boolean> => {
-    // In a real app, this would make an API request
-    // For now, simulate with our mock data
-
     // Simple validation
     if (!username || !email || !password) {
       toast.error("All fields are required");
@@ -101,24 +118,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       // Check if email already exists
-      const existingUser = mockUsers.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase()
-      );
+      const existingUser = await findUserByEmail(email);
 
       if (existingUser) {
         toast.error("Email already in use");
         return false;
       }
 
-      // Create a new user (in a real app, this would be saved to the database)
-      const newUser: User = {
-        id: `user${Date.now()}`,
+      // Create a new user in MongoDB
+      const newUser = await createUser({
         username,
         email,
         role,
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-      };
+      });
 
       // Save to state and localStorage
       setUser(newUser);
