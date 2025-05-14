@@ -4,21 +4,6 @@
 
 import { mongoConfig } from "./mongoConfig";
 
-// Mock client for frontend
-const client = {
-  connect: async () => {
-    console.log("Mock MongoDB connection established");
-    return client;
-  },
-  db: (name: string = mongoConfig.dbName) => {
-    console.log(`Mock database ${name} accessed`);
-    return mockDb;
-  },
-  close: async () => {
-    console.log("Mock MongoDB connection closed");
-  }
-};
-
 // Mock database operations
 const mockDb = {
   collection: (name: string) => ({
@@ -51,15 +36,26 @@ const mockDb = {
     countDocuments: async () => {
       console.log(`Mock countDocuments operation on ${name} collection`);
       return 0;
-    },
-    createCollection: async () => {
-      console.log(`Mock createCollection operation for ${name}`);
-      return true;
     }
   }),
   createCollection: async (name: string) => {
     console.log(`Mock createCollection operation for ${name}`);
     return true;
+  }
+};
+
+// Mock client for frontend
+const client = {
+  connect: async () => {
+    console.log("Mock MongoDB connection established");
+    return client;
+  },
+  db: () => {
+    console.log(`Mock database ${mongoConfig.dbName} accessed`);
+    return mockDb;
+  },
+  close: async () => {
+    console.log("Mock MongoDB connection closed");
   }
 };
 
@@ -75,8 +71,8 @@ export async function connectToMongo() {
 }
 
 // Get database instance
-export function getDb(dbName?: string) {
-  return client.db(dbName);
+export function getDb() {
+  return client.db();
 }
 
 // Function to close the connection
