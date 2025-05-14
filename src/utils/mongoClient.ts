@@ -10,7 +10,7 @@ const client = {
     console.log("Mock MongoDB connection established");
     return client;
   },
-  db: (name: string) => {
+  db: (name: string = mongoConfig.dbName) => {
     console.log(`Mock database ${name} accessed`);
     return mockDb;
   },
@@ -75,8 +75,8 @@ export async function connectToMongo() {
 }
 
 // Get database instance
-export function getDb() {
-  return client.db(mongoConfig.dbName);
+export function getDb(dbName?: string) {
+  return client.db(dbName);
 }
 
 // Function to close the connection

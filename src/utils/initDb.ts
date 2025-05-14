@@ -5,7 +5,7 @@ import { mockUsers, mockCourses, mockLearningPaths, mockCourseProgress, mockNoti
 async function initializeDatabase() {
   try {
     const client = await connectToMongo();
-    const db = client.db("lms");
+    const db = client.db();
     
     console.log("Starting database initialization...");
     
