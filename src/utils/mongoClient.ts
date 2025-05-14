@@ -1,11 +1,9 @@
 
 import { MongoClient, ServerApiVersion } from "mongodb";
-
-// MongoDB connection string - replace with your actual MongoDB URI
-const uri = "mongodb://localhost:27017/lms";
+import { mongoConfig } from "./mongoConfig";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
+const client = new MongoClient(mongoConfig.uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -27,7 +25,7 @@ export async function connectToMongo() {
 
 // Get database instance
 export function getDb() {
-  return client.db("lms");
+  return client.db(mongoConfig.dbName);
 }
 
 // Function to close the connection
