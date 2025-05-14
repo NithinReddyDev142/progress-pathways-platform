@@ -8,8 +8,6 @@ import {
   Question, 
   CourseProgress 
 } from "../types";
-import { Document, WithId } from "mongodb";
-import { mongoConfig } from "../utils/mongoConfig";
 
 // Collection names
 const COLLECTIONS = {
