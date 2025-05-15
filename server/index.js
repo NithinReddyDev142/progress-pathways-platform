@@ -4,6 +4,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
+const passport = require('./config/passport');
+const cookieParser = require('cookie-parser');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -15,14 +17,18 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/lms';
 const NODE_ENV = process.env.NODE_ENV || 'development';
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:8080';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({
   origin: CORS_ORIGIN,
   credentials: true,
 }));
+
+// Initialize Passport
+app.use(passport.initialize());
 
 // MongoDB Connection
 mongoose.connect(MONGODB_URI)
@@ -34,9 +40,11 @@ app.get('/api/status', (req, res) => {
   res.json({ status: 'Server running', environment: NODE_ENV });
 });
 
-// API Routes - you would import and use your route files here
-// app.use('/api/users', require('./routes/users'));
+// API Routes
+app.use('/api/auth', require('./routes/auth'));
+// Add more routes as needed
 // app.use('/api/courses', require('./routes/courses'));
+// app.use('/api/users', require('./routes/users'));
 
 // Serve static assets in production
 if (NODE_ENV === 'production') {

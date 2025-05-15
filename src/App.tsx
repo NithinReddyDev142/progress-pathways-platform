@@ -11,6 +11,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 // Auth Pages
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
+import GoogleCallback from "@/pages/auth/GoogleCallback";
 
 // Main Dashboard
 import Dashboard from "@/pages/Dashboard";
@@ -32,6 +33,7 @@ const App = () => (
               {/* Auth Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/auth/success" element={<GoogleCallback />} />
               
               {/* Protected Routes */}
               <Route 

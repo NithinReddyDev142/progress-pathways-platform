@@ -15,25 +15,56 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const TOKEN_KEY = import.meta.env.VITE_AUTH_STORAGE_KEY || 'lms-auth-token';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // Check for saved token and load user data
   useEffect(() => {
-    // Check for saved user in localStorage
-    const savedUser = localStorage.getItem("lms-user");
-    if (savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser) as User;
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-        setRole(parsedUser.role);
-      } catch (error) {
-        console.error("Failed to parse saved user:", error);
-        localStorage.removeItem("lms-user");
+    const loadUser = async () => {
+      const token = localStorage.getItem(TOKEN_KEY);
+      
+      if (token) {
+        try {
+          // Set auth header
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
+          // Get current user
+          const response = await apiClient.get('/auth/me');
+          
+          if (response.data?.data) {
+            const userData = response.data.data;
+            
+            // Map MongoDB _id to our id field
+            const userWithId: User = {
+              id: userData._id,
+              username: userData.username,
+              email: userData.email,
+              role: userData.role,
+              avatar: userData.avatar,
+              createdAt: userData.createdAt,
+              lastLogin: userData.lastLogin
+            };
+            
+            setUser(userWithId);
+            setIsAuthenticated(true);
+            setRole(userData.role as UserRole);
+          }
+        } catch (error) {
+          console.error("Failed to load user:", error);
+          localStorage.removeItem(TOKEN_KEY);
+          apiClient.defaults.headers.common['Authorization'] = '';
+        }
       }
-    }
+      
+      setLoading(false);
+    };
+    
+    loadUser();
     
     // Initialize API health check
     const checkApiHealth = async () => {
@@ -41,8 +72,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await apiClient.get('/status');
         console.log("API connection established");
       } catch (error) {
-        console.warn("API connection failed, using mock data");
-        // The API client will handle toast messages
+        console.warn("API connection failed");
+        toast.error("Could not connect to the server. Some features may not work.");
       }
     };
     
@@ -57,90 +88,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      // In a real implementation, this would call the backend API
-      // For now, we'll use a simpler approach for demo purposes
-      const response = await apiClient.post('/auth/login', { email, password })
-        .catch(error => {
-          // For development/demo, fall back to local mock if API fails
-          console.log("Using local auth fallback due to API error", error);
-          return { data: null };
-        });
+      const response = await apiClient.post('/auth/login', { email, password });
       
-      // If API returned a user
-      if (response.data?.user) {
-        const loggedInUser = response.data.user;
-        setUser(loggedInUser);
-        setIsAuthenticated(true);
-        setRole(loggedInUser.role);
-        localStorage.setItem("lms-user", JSON.stringify(loggedInUser));
-        toast.success(`Welcome back, ${loggedInUser.username}!`);
-        return true;
-      }
-      
-      // Demo fallback - find a user with matching email in mock data
-      // In real app, this would be removed once the API is working
-      const savedUsers = localStorage.getItem("demo-users");
-      let users = [];
-      
-      if (savedUsers) {
-        users = JSON.parse(savedUsers);
-      } else {
-        // Default users for demo
-        users = [
-          {
-            id: "user1",
-            username: "admin",
-            email: "admin@example.com",
-            role: "admin",
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString(),
-          },
-          {
-            id: "user2",
-            username: "teacher",
-            email: "teacher@example.com",
-            role: "teacher",
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString(),
-          },
-          {
-            id: "user3",
-            username: "student",
-            email: "student@example.com",
-            role: "student",
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString(),
-          }
-        ];
-        localStorage.setItem("demo-users", JSON.stringify(users));
-      }
-      
-      const foundUser = users.find((u: any) => u.email === email);
-      
-      if (foundUser) {
-        // In a real app, you would check the password hash here
+      if (response.data?.success && response.data?.token && response.data?.user) {
+        // Save token
+        localStorage.setItem(TOKEN_KEY, response.data.token);
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
         
-        // Update last login
-        const updatedUser = {
-          ...foundUser,
-          lastLogin: new Date().toISOString(),
+        const userData = response.data.user;
+        
+        // Map MongoDB _id to our id field
+        const userWithId: User = {
+          id: userData._id,
+          username: userData.username,
+          email: userData.email,
+          role: userData.role,
+          avatar: userData.avatar,
+          createdAt: userData.createdAt,
+          lastLogin: userData.lastLogin
         };
         
-        // Save to state and localStorage
-        setUser(updatedUser);
+        setUser(userWithId);
         setIsAuthenticated(true);
-        setRole(updatedUser.role);
-        localStorage.setItem("lms-user", JSON.stringify(updatedUser));
+        setRole(userData.role as UserRole);
         
-        toast.success(`Welcome back, ${updatedUser.username}!`);
+        toast.success(`Welcome back, ${userData.username}!`);
         return true;
       } else {
-        toast.error("Invalid email or password");
+        toast.error(response.data?.message || "Login failed");
         return false;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      toast.error("An error occurred during login");
+      toast.error(error.response?.data?.message || "An error occurred during login");
       return false;
     }
   };
@@ -149,7 +129,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setIsAuthenticated(false);
     setRole(null);
-    localStorage.removeItem("lms-user");
+    localStorage.removeItem(TOKEN_KEY);
+    apiClient.defaults.headers.common['Authorization'] = '';
     toast.info("You have been logged out");
   };
 
@@ -166,77 +147,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      // In a real implementation, this would call the backend API
-      const response = await apiClient.post('/auth/signup', { username, email, password, role })
-        .catch(error => {
-          // For development/demo, fall back to local mock if API fails
-          console.log("Using local auth fallback due to API error", error);
-          return { data: null };
-        });
+      const response = await apiClient.post('/auth/register', { 
+        username, 
+        email, 
+        password, 
+        role 
+      });
       
-      // If API returned a user
-      if (response.data?.user) {
-        const newUser = response.data.user;
-        setUser(newUser);
+      if (response.data?.success && response.data?.token && response.data?.user) {
+        // Save token
+        localStorage.setItem(TOKEN_KEY, response.data.token);
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        
+        const userData = response.data.user;
+        
+        // Map MongoDB _id to our id field
+        const userWithId: User = {
+          id: userData._id,
+          username: userData.username,
+          email: userData.email,
+          role: userData.role,
+          avatar: userData.avatar,
+          createdAt: userData.createdAt,
+          lastLogin: userData.lastLogin
+        };
+        
+        setUser(userWithId);
         setIsAuthenticated(true);
-        setRole(newUser.role);
-        localStorage.setItem("lms-user", JSON.stringify(newUser));
+        setRole(userData.role as UserRole);
+        
         toast.success("Account created successfully!");
         return true;
-      }
-      
-      // Demo fallback - create a user locally
-      const savedUsers = localStorage.getItem("demo-users");
-      let users = [];
-      
-      if (savedUsers) {
-        users = JSON.parse(savedUsers);
-        
-        // Check if email already exists
-        const existingUser = users.find((u: any) => u.email === email);
-        if (existingUser) {
-          toast.error("Email already in use");
-          return false;
-        }
       } else {
-        // Initialize with default users
-        users = [
-          {
-            id: "user1",
-            username: "admin",
-            email: "admin@example.com",
-            role: "admin",
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString(),
-          }
-        ];
+        toast.error(response.data?.message || "Registration failed");
+        return false;
       }
-      
-      // Create new user
-      const newUser = {
-        id: `user${Date.now()}`,
-        username,
-        email,
-        role,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-      };
-      
-      // Add to local storage
-      users.push(newUser);
-      localStorage.setItem("demo-users", JSON.stringify(users));
-      
-      // Update state
-      setUser(newUser);
-      setIsAuthenticated(true);
-      setRole(newUser.role);
-      localStorage.setItem("lms-user", JSON.stringify(newUser));
-      
-      toast.success("Account created successfully!");
-      return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
-      toast.error("An error occurred during signup");
+      toast.error(error.response?.data?.message || "An error occurred during signup");
       return false;
     }
   };
@@ -249,6 +197,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     signup,
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
