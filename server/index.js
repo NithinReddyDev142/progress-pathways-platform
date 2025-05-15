@@ -42,9 +42,11 @@ app.get('/api/status', (req, res) => {
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
-// Add more routes as needed
-// app.use('/api/courses', require('./routes/courses'));
-// app.use('/api/users', require('./routes/users'));
+app.use('/api/courses', require('./routes/courses'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/progress', require('./routes/progress'));
+app.use('/api/questions', require('./routes/questions'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Serve static assets in production
 if (NODE_ENV === 'production') {

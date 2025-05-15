@@ -1,86 +1,42 @@
 
-// This is now a mock implementation for frontend use
-// The real MongoDB connection will happen on the server
+import { MongoClient, Db } from 'mongodb';
+import { config } from './envConfig';
 
-import { mongoConfig } from "./mongoConfig";
+let client: MongoClient;
+let db: Db;
 
-// Mock database operations
-const mockDb = {
-  collection: (name: string) => ({
-    find: () => ({
-      toArray: async () => {
-        console.log(`Mock find operation on ${name} collection`);
-        return [];
-      }
-    }),
-    findOne: async () => {
-      console.log(`Mock findOne operation on ${name} collection`);
-      return null;
-    },
-    insertOne: async () => {
-      console.log(`Mock insertOne operation on ${name} collection`);
-      return { acknowledged: true, insertedId: 'mock-id' };
-    },
-    insertMany: async () => {
-      console.log(`Mock insertMany operation on ${name} collection`);
-      return { acknowledged: true, insertedIds: ['mock-id-1', 'mock-id-2'] };
-    },
-    updateOne: async () => {
-      console.log(`Mock updateOne operation on ${name} collection`);
-      return { acknowledged: true, modifiedCount: 1 };
-    },
-    deleteOne: async () => {
-      console.log(`Mock deleteOne operation on ${name} collection`);
-      return { acknowledged: true, deletedCount: 1 };
-    },
-    countDocuments: async () => {
-      console.log(`Mock countDocuments operation on ${name} collection`);
-      return 0;
-    }
-  }),
-  createCollection: async (name: string) => {
-    console.log(`Mock createCollection operation for ${name}`);
-    return true;
-  }
-};
-
-// Mock client for frontend
-const client = {
-  connect: async () => {
-    console.log("Mock MongoDB connection established");
-    return client;
-  },
-  db: () => {
-    console.log(`Mock database ${mongoConfig.dbName} accessed`);
-    return mockDb;
-  },
-  close: async () => {
-    console.log("Mock MongoDB connection closed");
-  }
-};
-
-export async function connectToMongo() {
+/**
+ * Initialize MongoDB connection
+ */
+export async function connectToMongo(): Promise<void> {
   try {
-    // In a browser environment, we'll return the mock client
-    console.log("Creating mock MongoDB connection (frontend environment)");
-    return client;
+    const uri = process.env.MONGODB_URI || config.mongoUri || 'mongodb://localhost:27017/lms';
+    client = new MongoClient(uri);
+    await client.connect();
+    db = client.db(process.env.MONGODB_DB_NAME || config.mongoDbName || 'lms');
+    console.log('Connected to MongoDB');
   } catch (error) {
-    console.error("Failed to create mock MongoDB connection", error);
+    console.error('Failed to connect to MongoDB:', error);
     throw error;
   }
 }
 
-// Get database instance
-export function getDb() {
-  return client.db();
+/**
+ * Get MongoDB database instance
+ */
+export function getDb(): Db {
+  if (!db) {
+    throw new Error('Database not initialized. Call connectToMongo first.');
+  }
+  return db;
 }
 
-// Function to close the connection
-export async function closeMongoConnection() {
-  try {
+/**
+ * Close MongoDB connection
+ */
+export async function closeMongo(): Promise<void> {
+  if (client) {
     await client.close();
-    console.log("Mock MongoDB connection closed");
-  } catch (error) {
-    console.error("Error closing mock MongoDB connection", error);
+    console.log('MongoDB connection closed');
   }
 }

@@ -16,6 +16,10 @@ import GoogleCallback from "@/pages/auth/GoogleCallback";
 // Main Dashboard
 import Dashboard from "@/pages/Dashboard";
 
+// User Profile & Notifications
+import Profile from "@/pages/Profile";
+import Notifications from "@/pages/Notifications";
+
 // Not Found
 import NotFound from "@/pages/NotFound";
 
@@ -43,6 +47,24 @@ const App = () => (
                     <Dashboard />
                   </ProtectedRoute>
                 } 
+              />
+              
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
               />
               
               {/* Redirect to login if accessing root without auth */}
