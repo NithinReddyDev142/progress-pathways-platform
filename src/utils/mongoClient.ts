@@ -1,42 +1,28 @@
 
-import { MongoClient, Db } from 'mongodb';
-import { config } from './envConfig';
+import { MongoClient } from 'mongodb';
+import { mongoConfig } from './mongoConfig';
+import config from './envConfig';
 
-let client: MongoClient;
-let db: Db;
+let client: MongoClient | null = null;
 
-/**
- * Initialize MongoDB connection
- */
-export async function connectToMongo(): Promise<void> {
+export const connectToMongo = async () => {
   try {
-    const uri = process.env.MONGODB_URI || config.mongoUri || 'mongodb://localhost:27017/lms';
-    client = new MongoClient(uri);
-    await client.connect();
-    db = client.db(process.env.MONGODB_DB_NAME || config.mongoDbName || 'lms');
-    console.log('Connected to MongoDB');
+    if (!client) {
+      client = new MongoClient(mongoConfig.uri);
+      await client.connect();
+      console.log('Connected to MongoDB');
+    }
+    return client.db(mongoConfig.dbName);
   } catch (error) {
-    console.error('Failed to connect to MongoDB:', error);
+    console.error('Error connecting to MongoDB:', error);
     throw error;
   }
-}
+};
 
-/**
- * Get MongoDB database instance
- */
-export function getDb(): Db {
-  if (!db) {
-    throw new Error('Database not initialized. Call connectToMongo first.');
-  }
-  return db;
-}
-
-/**
- * Close MongoDB connection
- */
-export async function closeMongo(): Promise<void> {
+export const closeMongoConnection = async () => {
   if (client) {
     await client.close();
+    client = null;
     console.log('MongoDB connection closed');
   }
-}
+};

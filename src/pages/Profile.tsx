@@ -12,7 +12,7 @@ import { Edit, Lock, Save } from "lucide-react";
 import { userService } from "@/services/userService";
 
 const Profile = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   
   const [isEditing, setIsEditing] = useState(false);
@@ -54,12 +54,17 @@ const Profile = () => {
       });
       
       if (updatedUser) {
-        updateUser(updatedUser);
-        setIsEditing(false);
+        // Instead of using updateUser from context, we'll refresh the page
+        // to get the updated user information
         toast({
           title: "Profile updated",
-          description: "Your profile has been updated successfully.",
+          description: "Your profile has been updated successfully. Refreshing...",
         });
+        
+        // Give toast time to display before refreshing
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
     } catch (error) {
       toast({
@@ -83,9 +88,10 @@ const Profile = () => {
     }
     
     try {
+      // Here we call with the correct parameter names for the userService
       await userService.updateUserProfile({
-        password: passwords.newPassword,
         currentPassword: passwords.currentPassword,
+        password: passwords.newPassword,
       });
       
       setPasswords({
