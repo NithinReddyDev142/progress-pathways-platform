@@ -15,6 +15,8 @@ export type CourseType = 'pdf' | 'video' | 'link';
 
 export type CourseStatus = 'draft' | 'published' | 'archived';
 
+export type CourseDifficulty = 'beginner' | 'intermediate' | 'advanced';
+
 export interface Course {
   id: string;
   title: string;
@@ -25,6 +27,10 @@ export interface Course {
   instructorId: string;
   instructorName: string;
   thumbnail?: string;
+  duration?: number;
+  difficulty?: CourseDifficulty;
+  rating?: number;
+  ratingCount?: number;
   createdAt: string;
   updatedAt: string;
   deadline?: string;

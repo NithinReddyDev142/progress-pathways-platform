@@ -1,83 +1,68 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { LmsProvider } from "@/contexts/lms";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-
-// Auth Pages
-import Login from "@/pages/auth/Login";
-import Signup from "@/pages/auth/Signup";
-import GoogleCallback from "@/pages/auth/GoogleCallback";
-
-// Main Dashboard
-import Dashboard from "@/pages/Dashboard";
-
-// User Profile & Notifications
-import Profile from "@/pages/Profile";
-import Notifications from "@/pages/Notifications";
-
-// Not Found
-import NotFound from "@/pages/NotFound";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { AuthProvider } from './contexts/AuthContext';
+import { LmsProvider } from './contexts/LmsContext';
+import Index from './pages/Index';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
+import NotFound from './pages/NotFound';
+import ProtectedRoute from './components/ProtectedRoute';
+import GoogleCallback from './pages/GoogleCallback';
+import { Toaster } from 'sonner';
+import CoursesList from './pages/courses/CoursesList';
+import CourseDetail from './pages/courses/CourseDetail';
+import CourseForm from './pages/courses/CourseForm';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  return (
+    <Router>
       <AuthProvider>
-        <LmsProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <LmsProvider>
             <Routes>
-              {/* Auth Routes */}
+              <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/auth/success" element={<GoogleCallback />} />
+              <Route path="/auth/google/callback" element={<GoogleCallback />} />
               
-              {/* Protected Routes */}
-              <Route 
-                path="/" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
+              {/* Protected routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/notifications" element={<Notifications />} />
+                
+                {/* Course routes */}
+                <Route path="/courses" element={<CoursesList />} />
+                <Route path="/courses/:id" element={<CourseDetail />} />
+                <Route path="/courses/create" element={<CourseForm />} />
+                <Route path="/courses/edit/:id" element={<CourseForm />} />
+                
+                {/* Add other protected routes here */}
+              </Route>
               
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              
-              <Route
-                path="/notifications"
-                element={
-                  <ProtectedRoute>
-                    <Notifications />
-                  </ProtectedRoute>
-                }
-              />
-              
-              {/* Redirect to login if accessing root without auth */}
-              <Route path="/" element={<Navigate to="/login" />} />
-              
-              {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </LmsProvider>
+            <Toaster />
+          </LmsProvider>
+        </QueryClientProvider>
       </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </Router>
+  );
+}
 
 export default App;

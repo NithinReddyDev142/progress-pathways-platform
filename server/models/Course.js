@@ -38,6 +38,25 @@ const CourseSchema = new mongoose.Schema({
   thumbnail: {
     type: String,
   },
+  duration: {
+    type: Number, // Duration in minutes
+    default: 0,
+  },
+  difficulty: {
+    type: String,
+    enum: ['beginner', 'intermediate', 'advanced'],
+    default: 'beginner',
+  },
+  rating: {
+    type: Number,
+    min: 0,
+    max: 5,
+    default: 0,
+  },
+  ratingCount: {
+    type: Number,
+    default: 0,
+  },
   deadline: {
     type: Date,
   },
