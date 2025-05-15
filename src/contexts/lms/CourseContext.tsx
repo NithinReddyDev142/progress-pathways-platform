@@ -10,7 +10,7 @@ interface CourseContextType {
   loading: boolean;
   error: string | null;
   getCourse: (id: string) => Course | undefined;
-  addCourse: (course: Omit<Course, "id" | "createdAt" | "updatedAt" | "status" | "instructorId" | "instructorName">) => Promise<void>;
+  addCourse: (course: Omit<Course, "id" | "createdAt" | "updatedAt" | "instructorId" | "instructorName">) => Promise<void>;
   updateCourse: (id: string, updates: Partial<Course>) => Promise<void>;
   deleteCourse: (id: string) => Promise<void>;
 }
@@ -45,7 +45,7 @@ export const CourseProvider = ({ children }: { children: ReactNode }) => {
 
   const getCourse = (id: string) => courses.find(course => course.id === id);
 
-  const addCourse = async (course: Omit<Course, "id" | "createdAt" | "updatedAt" | "status" | "instructorId" | "instructorName">) => {
+  const addCourse = async (course: Omit<Course, "id" | "createdAt" | "updatedAt" | "instructorId" | "instructorName">) => {
     if (!user) return;
     
     try {

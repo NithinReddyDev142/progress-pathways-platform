@@ -1,17 +1,18 @@
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { LmsProvider } from './contexts/LmsContext';
 import Index from './pages/Index';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Login from './pages/auth/Login';
+import Signup from './pages/auth/Signup';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import NotFound from './pages/NotFound';
-import ProtectedRoute from './components/ProtectedRoute';
-import GoogleCallback from './pages/GoogleCallback';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import GoogleCallback from './pages/auth/GoogleCallback';
 import { Toaster } from 'sonner';
 import CoursesList from './pages/courses/CoursesList';
 import CourseDetail from './pages/courses/CourseDetail';

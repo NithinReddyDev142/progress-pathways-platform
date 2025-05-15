@@ -51,7 +51,13 @@ router.get('/', protect, async (req, res) => {
     res.status(200).json({
       success: true,
       count: progress.length,
-      data: progress
+      data: progress.map(p => ({
+        userId: p.userId.toString(),
+        courseId: p.courseId._id.toString(),
+        progress: p.progress,
+        completed: p.completed,
+        lastAccessed: p.lastAccessed
+      }))
     });
   } catch (error) {
     res.status(500).json({
@@ -76,16 +82,24 @@ router.get('/courses/:courseId', protect, async (req, res) => {
       return res.status(200).json({
         success: true,
         data: {
+          userId: req.user._id.toString(),
+          courseId: req.params.courseId,
           progress: 0,
           completed: false,
-          lastAccessed: null
+          lastAccessed: new Date()
         }
       });
     }
     
     res.status(200).json({
       success: true,
-      data: progress
+      data: {
+        userId: progress.userId.toString(),
+        courseId: progress.courseId.toString(),
+        progress: progress.progress,
+        completed: progress.completed,
+        lastAccessed: progress.lastAccessed
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -126,7 +140,13 @@ router.post('/courses/:courseId', protect, async (req, res) => {
     
     res.status(200).json({
       success: true,
-      data: courseProgress
+      data: {
+        userId: courseProgress.userId.toString(),
+        courseId: courseProgress.courseId.toString(),
+        progress: courseProgress.progress,
+        completed: courseProgress.completed,
+        lastAccessed: courseProgress.lastAccessed
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -167,7 +187,14 @@ router.get('/instructor/courses/:courseId', protect, async (req, res) => {
     res.status(200).json({
       success: true,
       count: progress.length,
-      data: progress
+      data: progress.map(p => ({
+        userId: p.userId._id.toString(),
+        username: p.userId.username,
+        courseId: p.courseId.toString(),
+        progress: p.progress,
+        completed: p.completed,
+        lastAccessed: p.lastAccessed
+      }))
     });
   } catch (error) {
     res.status(500).json({
