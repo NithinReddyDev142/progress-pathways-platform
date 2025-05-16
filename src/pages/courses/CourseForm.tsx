@@ -17,7 +17,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import MainLayout from "@/components/layout/MainLayout";
-import { CourseType } from "@/types";
+import { CourseType, CourseDifficulty, CourseStatus } from "@/types";
 
 const CourseForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,9 +37,9 @@ const CourseForm = () => {
     techStack: [] as string[],
     thumbnail: "",
     duration: 0,
-    difficulty: "beginner",
+    difficulty: "beginner" as CourseDifficulty,
     deadline: undefined as Date | undefined,
-    status: "draft"
+    status: "draft" as CourseStatus
   });
 
   const [techInput, setTechInput] = useState("");
@@ -105,7 +105,7 @@ const CourseForm = () => {
 
     try {
       if (isEditing && id) {
-        await updateCourse(id, formData);
+        await updateCourse(id, formData as Partial<Course>);
       } else {
         await addCourse(formData);
       }
@@ -186,7 +186,7 @@ const CourseForm = () => {
                     <Label htmlFor="type">Content Type *</Label>
                     <Select
                       value={formData.type}
-                      onValueChange={(value) => handleSelectChange("type", value)}
+                      onValueChange={(value: CourseType) => handleSelectChange("type", value)}
                     >
                       <SelectTrigger id="type">
                         <SelectValue placeholder="Select Type" />
@@ -203,7 +203,7 @@ const CourseForm = () => {
                     <Label htmlFor="difficulty">Difficulty Level</Label>
                     <Select
                       value={formData.difficulty}
-                      onValueChange={(value) => handleSelectChange("difficulty", value)}
+                      onValueChange={(value: CourseDifficulty) => handleSelectChange("difficulty", value)}
                     >
                       <SelectTrigger id="difficulty">
                         <SelectValue placeholder="Select Difficulty" />
@@ -333,7 +333,7 @@ const CourseForm = () => {
                   <Label htmlFor="status">Course Status</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) => handleSelectChange("status", value)}
+                    onValueChange={(value: CourseStatus) => handleSelectChange("status", value)}
                   >
                     <SelectTrigger id="status">
                       <SelectValue placeholder="Select Status" />
