@@ -1,6 +1,6 @@
 
 import apiClient from './apiClient';
-import { CourseProgress } from '../types';
+import { CourseProgress } from '@/types';
 import { toast } from 'sonner';
 
 interface ProgressResponse {
@@ -20,8 +20,7 @@ export const progressService = {
       const response = await apiClient.get<ProgressListResponse>('/progress');
       return response.data.data;
     } catch (error) {
-      console.error('Error fetching user progress:', error);
-      toast.error('Failed to fetch your learning progress');
+      console.error('Error fetching progress:', error);
       return [];
     }
   },
@@ -31,41 +30,38 @@ export const progressService = {
       const response = await apiClient.get<ProgressResponse>(`/progress/courses/${courseId}`);
       return response.data.data;
     } catch (error) {
-      console.error(`Error fetching course progress for course ${courseId}:`, error);
+      console.error(`Error fetching progress for course ${courseId}:`, error);
       return null;
     }
   },
   
   async updateProgress(courseId: string, progress: number): Promise<CourseProgress | null> {
     try {
-      const response = await apiClient.post<ProgressResponse>(`/progress/courses/${courseId}`, { progress });
+      const response = await apiClient.post<ProgressResponse>(`/progress/courses/${courseId}`, {
+        progress
+      });
+      
+      if (progress === 100) {
+        toast.success('Congratulations! Course completed!');
+      } else {
+        toast.success('Progress updated successfully');
+      }
+      
       return response.data.data;
     } catch (error) {
       console.error(`Error updating progress for course ${courseId}:`, error);
-      toast.error('Failed to update course progress');
+      toast.error('Failed to update progress');
       return null;
     }
   },
   
-  async markCompleted(courseId: string): Promise<CourseProgress | null> {
-    try {
-      const response = await apiClient.post<ProgressResponse>(`/progress/courses/${courseId}`, { progress: 100 });
-      toast.success('Course marked as completed!');
-      return response.data.data;
-    } catch (error) {
-      console.error(`Error marking course ${courseId} as completed:`, error);
-      toast.error('Failed to mark course as completed');
-      return null;
-    }
-  },
-  
-  async getInstructorCourseProgress(courseId: string): Promise<CourseProgress[]> {
+  async getStudentsProgressForCourse(courseId: string): Promise<CourseProgress[]> {
     try {
       const response = await apiClient.get<ProgressListResponse>(`/progress/instructor/courses/${courseId}`);
       return response.data.data;
     } catch (error) {
       console.error(`Error fetching student progress for course ${courseId}:`, error);
-      toast.error('Failed to fetch student progress data');
+      toast.error('Failed to fetch student progress');
       return [];
     }
   }
